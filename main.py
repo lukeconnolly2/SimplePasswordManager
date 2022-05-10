@@ -17,8 +17,10 @@ def main():
         print("Wrong Password")
         exit(1)
 
+    key = base64.urlsafe_b64encode(bcrypt.kdf(master_password, b"salt", 32, 50))
+
     if exists("passwords.bin"):
-        passwords = load_passwords(master_password)
+        passwords = load_passwords(key)
         print("Current stored passwords:")
         print(passwords)
     else:
@@ -27,9 +29,9 @@ def main():
 
     if input("Do you want to add a password: (yes/no)").lower() == "yes":
         passwords = add_password(passwords)
-        write_passwords(passwords, master_password)
+        write_passwords(passwords, key)
 
-    passwords = load_passwords(master_password)
+    passwords = load_passwords(key)
     print(passwords)
     return
 
@@ -68,8 +70,7 @@ def load_master_password():
 
 
 # Writes password dictonary to encrypted file
-def write_passwords(dict, masterpassword):
-    key = base64.urlsafe_b64encode(bcrypt.kdf(masterpassword, b"salt", 32, 50))
+def write_passwords(dict, key):
     fernet = Fernet(key)
     passwords_data = json.dumps(dict)
     passwords_encrypted = fernet.encrypt(passwords_data.encode("utf-8"))
@@ -77,11 +78,9 @@ def write_passwords(dict, masterpassword):
         f.write(passwords_encrypted)
 
 
-# Loads and returns passwords dictonary from file
-def load_passwords(masterpassword):
-    key = base64.urlsafe_b64encode(bcrypt.kdf(masterpassword, b"salt", 32, 50))
+# Loads and returns passwords dictionary from file
+def load_passwords(key):
     fernet = Fernet(key)
-
     with open("passwords.bin", "rb") as f:
         dict_encrypted = f.read()
     dict_decyrpted = fernet.decrypt(dict_encrypted)

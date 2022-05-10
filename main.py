@@ -1,20 +1,25 @@
+import base64
+import json
 import string
 import random
 from os.path import exists
 import bcrypt
+from cryptography.fernet import Fernet
 
 
 def main():
     if not exists("masterpassword.bin"):
         create_password()
 
-    master_password = input("Enter your master password: ")
+    master_password = input("Enter your master password: ").encode("utf-8")
 
-    if not bcrypt.checkpw(master_password.encode("utf-8"), load_master_password()):
+
+    if not bcrypt.checkpw(master_password, load_master_password()):
         print("Wrong Password")
         exit(1)
 
-    print("Password was correct")
+
+
     return
 
 
@@ -47,6 +52,23 @@ def load_master_password():
     with open("masterpassword.bin", "rb") as f:
         return f.read()
 
+
+def write_passwords(dict, masterpassword):
+    key = base64.urlsafe_b64encode(bcrypt.kdf(masterpassword, b"salt", 32, 50))
+    fernet = Fernet(key)
+    passwords_data = json.dumps(dict)
+    passwords_encrypted = fernet.encrypt(passwords_data.encode("utf-8"))
+    with open("passwords.bin", "wb") as f:
+        f.write(passwords_encrypted)
+
+def load_passwords(masterpassword):
+    key = base64.urlsafe_b64encode(bcrypt.kdf(masterpassword,b"salt" ,32, 50))
+    fernet = Fernet(key)
+
+    with open("passwords.bin", "rb") as f:
+        dict_encrypted = f.read()
+    dict_decyrpted = fernet.decrypt(dict_encrypted)
+    return json.loads(dict_decyrpted)
 
 if __name__ == '__main__':
     main()

@@ -27,7 +27,7 @@ def main():
         print("No passwords saved")
         passwords = {}
 
-    if input("Do you want to add a password: (yes/no)").lower() == "yes":
+    if input("Do you want to add a password: (yes/no): ").lower() == "yes":
         passwords = add_password(passwords)
         write_passwords(passwords, key)
 

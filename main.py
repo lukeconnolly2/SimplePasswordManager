@@ -22,17 +22,30 @@ def main():
     if exists("passwords.bin"):
         passwords = load_passwords(key)
         print("Current stored passwords:")
-        print(passwords)
+        display_passwords(passwords)
     else:
         print("No passwords saved")
         passwords = {}
 
-    if input("Do you want to add a password: (yes/no): ").lower() == "yes":
-        passwords = add_password(passwords)
-        write_passwords(passwords, key)
+    main_menu(key)
 
-    passwords = load_passwords(key)
-    print(passwords)
+    return
+
+
+def main_menu(key):
+    while True:
+        passwords = load_passwords(key)
+        user_input = input("\n\nEnter 1 to display passwords\nEnter 2 to add a new password\nEnter 3 to remove a stored password\nEnter 4 to exit\n")
+        if user_input == "1":
+            display_passwords(passwords)
+        elif user_input == "2":
+            add_password(passwords, key)
+        elif user_input == "3":
+            remove_password(passwords, key)
+        elif user_input == "4":
+            exit(1)
+        else:
+            print("Input not allowed")
     return
 
 
@@ -87,7 +100,7 @@ def load_passwords(key):
     return json.loads(dict_decyrpted)
 
 
-def add_password(passwords):
+def add_password(passwords, key):
     name = input("Name of password: ")
     use_generated = input("Use generated password? (yes/no): ").lower()
     if use_generated == "yes":
@@ -96,8 +109,27 @@ def add_password(passwords):
     else:
         password = input("Enter your password: ")
 
-    passwords.update({name : password})
-    return passwords
+    passwords.update({name: password})
+    write_passwords(passwords, key)
+
+
+def display_passwords(passwords):
+    for key in passwords.keys():
+        print(f"{key}: {passwords.get(key)}")
+
+
+def remove_password(passwords,key):
+    display_passwords(passwords)
+    while True:
+        title = input("Enter the name of the password to remove: ")
+        if title in passwords.keys():
+            passwords.pop(title)
+            write_passwords(passwords, key)
+            print("Password Sucsessfully removed")
+            break
+        else:
+            print("Name doesnt refer to any passwords?!?! ")
+
 
 if __name__ == '__main__':
     main()

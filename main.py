@@ -6,7 +6,9 @@ from os.path import exists
 import bcrypt
 from cryptography.fernet import Fernet
 
-class password_info:
+
+# For future use
+class PasswordInfo:
     name = ""
     password = ""
     url = ""
@@ -15,6 +17,7 @@ class password_info:
         name = self.name
         password = self.password
         url = self.url
+
 
 def main():
     if not exists("masterpassword.bin"):
@@ -35,7 +38,7 @@ def main():
     else:
         print("No passwords saved")
         passwords = {}
-
+        write_passwords(passwords, key)
 
     main_menu(key)
 
@@ -46,9 +49,10 @@ def main_menu(key):
     while True:
         passwords = load_passwords(key)
         user_input = input("\n\nEnter 1 to display passwords\n"
-                                "Enter 2 to add a new password\n"
-                                "Enter 3 to remove a stored password\n"
-                                "Enter 4 to exit\n")
+                           "Enter 2 to add a new password\n"
+                           "Enter 3 to remove a stored password\n"
+                           "Enter 4 to update a password\n"
+                           "Enter 5 to exit\n")
         if user_input == "1":
             display_passwords(passwords)
         elif user_input == "2":
@@ -56,10 +60,11 @@ def main_menu(key):
         elif user_input == "3":
             remove_password(passwords, key)
         elif user_input == "4":
+            update_password(passwords, key)
+        elif user_input == "5":
             exit(1)
         else:
             print("Input not allowed")
-    return
 
 
 # Generate a password of size s
@@ -116,7 +121,8 @@ def load_passwords(key):
 def add_password(passwords, key):
     name = input("Name of password: ").lower()
     if name in passwords.keys():
-        user_input = input(f"{name} already has an entry: {passwords.get(name)}, do you want to overwrite it? (yes/no): ").lower()
+        user_input = input(
+            f"{name} already has an entry: {passwords.get(name)}, do you want to overwrite it? (yes/no): ").lower()
         if user_input == "no":
             return
 
@@ -136,11 +142,14 @@ def display_passwords(passwords):
         print(f"{key}: {passwords.get(key)}")
 
 
-def remove_password(passwords,key):
+def remove_password(passwords, key):
+    if len(passwords) == 0:
+        print("No Passwords to remove !")
+        return
     display_passwords(passwords)
     while True:
         title = input("Enter the name of the password to remove: ")
-        if title in passwords.keys():
+        if title not in passwords.keys():
             passwords.pop(title)
             write_passwords(passwords, key)
             print("Password Sucsessfully removed")
@@ -148,14 +157,31 @@ def remove_password(passwords,key):
         else:
             print("Name doesnt refer to any passwords?!?! ")
 
+
 def update_password(passwords, key):
     display_passwords(passwords)
+    if len(passwords) == 0:
+        print("No Passwords to update !")
+        return
     user_input = input("What password would you like to update: ").lower()
     if not user_input in passwords.keys():
-        create_new_password = input("This password is not in the database, Would you like to add it? (yes/no): ").lower()
+        create_new_password = input(
+            "This password is not in the database, Would you like to add it? (yes/no): ").lower()
     if create_new_password == "no":
         return
 
+    password_can_be_updated = False
+    while not password_can_be_updated:
+        new_password = input("Enter what to update the password to: ")
+        re_new_password = input("Re-Enter the password: ")
+        if new_password != re_new_password:
+            print("Passwords dont match, Try again")
+        else:
+            password_can_be_updated = True
+
+    passwords.update({user_input: new_password})
+    write_passwords(passwords, key)
+    print(f"Successfully updated, {user_input} : {new_password}")
 
 
 if __name__ == '__main__':

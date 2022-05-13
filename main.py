@@ -6,6 +6,15 @@ from os.path import exists
 import bcrypt
 from cryptography.fernet import Fernet
 
+class password_info:
+    name = ""
+    password = ""
+    url = ""
+
+    def __init__(self, name, password, url=None):
+        name = self.name
+        password = self.password
+        url = self.url
 
 def main():
     if not exists("masterpassword.bin"):
@@ -27,6 +36,7 @@ def main():
         print("No passwords saved")
         passwords = {}
 
+
     main_menu(key)
 
     return
@@ -35,7 +45,10 @@ def main():
 def main_menu(key):
     while True:
         passwords = load_passwords(key)
-        user_input = input("\n\nEnter 1 to display passwords\nEnter 2 to add a new password\nEnter 3 to remove a stored password\nEnter 4 to exit\n")
+        user_input = input("\n\nEnter 1 to display passwords\n"
+                                "Enter 2 to add a new password\n"
+                                "Enter 3 to remove a stored password\n"
+                                "Enter 4 to exit\n")
         if user_input == "1":
             display_passwords(passwords)
         elif user_input == "2":
@@ -101,7 +114,12 @@ def load_passwords(key):
 
 
 def add_password(passwords, key):
-    name = input("Name of password: ")
+    name = input("Name of password: ").lower()
+    if name in passwords.keys():
+        user_input = input(f"{name} already has an entry: {passwords.get(name)}, do you want to overwrite it? (yes/no): ").lower()
+        if user_input == "no":
+            return
+
     use_generated = input("Use generated password? (yes/no): ").lower()
     if use_generated == "yes":
         password = password_generator()
@@ -129,6 +147,15 @@ def remove_password(passwords,key):
             break
         else:
             print("Name doesnt refer to any passwords?!?! ")
+
+def update_password(passwords, key):
+    display_passwords(passwords)
+    user_input = input("What password would you like to update: ").lower()
+    if not user_input in passwords.keys():
+        create_new_password = input("This password is not in the database, Would you like to add it? (yes/no): ").lower()
+    if create_new_password == "no":
+        return
+
 
 
 if __name__ == '__main__':
